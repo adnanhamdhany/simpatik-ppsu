@@ -2,8 +2,12 @@
 import { cookies } from 'next/headers'
 import { countPetugas } from '@/supabase/services/user'
 import { getLaporanStats } from '@/supabase/services/laporan'
-import LogoutButton from '../components/LogoutButton'
+import { UserGroupIcon, DocumentTextIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline'
+
 import UserProfile from './UserProfile'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function DashboardPage() {
     const cookieStore = await cookies()
@@ -38,92 +42,80 @@ export default async function DashboardPage() {
     }
 
     return (
-        <div style={{ padding: '2rem', backgroundColor: '#f9fafb', minHeight: '100vh' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Dashboard</h1>
-                <LogoutButton />
-            </div>
+        <div className="p-12 bg-cream min-h-screen">
+            <div className="max-w-5xl mx-auto space-y-8">
+                {/* Welcome Section */}
+                <div className="text-left">
+                    <h1 className="text-5xl font-bold text-orange-deep mb-3">Selamat Datang di SIMPATIK PPSU</h1>
+                    <h2 className="text-xl font-semibold text-black-soft mb-4">Sistem Informasi Manajemen dan Pelaporan Terintegrasi Kegiatan PPSU</h2>
+                    <p className="text-gray-dark">
+                        SIMPATIK PPSU adalah platform berbasis web yang mendukung pelaporan, pemantauan, dan pengelolaan kegiatan harian PPSU secara terstruktur, transparan, dan efisien.
+                    </p>
+                </div>
 
-            {/* ADMIN VIEW */}
-            {user.role === 'admin' && (
-                <>
-                    {/* Cards Container */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                {/* ADMIN VIEW */}
+                {user.role === 'admin' && (
+                    <>
+                        <UserProfile user={user} variant="wide" />
 
-                        {/* Card 1: Total Petugas */}
-                        <div style={cardStyle}>
-                            <div>
-                                <p style={{ color: '#52525b', fontSize: '0.875rem' }}>Total Petugas</p>
-                                <p style={{ fontSize: '2rem', fontWeight: 'bold', lineHeight: '1' }}>{totalPetugas}</p>
-                            </div>
-                            <div style={{ fontSize: '2rem' }}>👤</div>
-                        </div>
-
-                        {/* Card 2: Laporan Masuk Hari Ini */}
-                        <div style={cardStyle}>
-                            <div>
-                                <p style={{ color: '#52525b', fontSize: '0.875rem' }}>Laporan Masuk Hari Ini</p>
-                                <p style={{ fontSize: '2rem', fontWeight: 'bold', lineHeight: '1' }}>{stats.today}</p>
-                            </div>
-                            <div style={{ fontSize: '2rem' }}>📄</div>
-                        </div>
-
-                        {/* Card 3: Laporan Belum Di Verifikasi */}
-                        <div style={cardStyle}>
-                            <div>
-                                <p style={{ color: '#52525b', fontSize: '0.875rem' }}>Laporan Belum Di Verifikasi</p>
-                                <p style={{ fontSize: '2rem', fontWeight: 'bold', lineHeight: '1' }}>{stats.pending}</p>
-                            </div>
-                            <div style={{ fontSize: '2rem' }}>☑️</div>
-                        </div>
-
-                    </div>
-
-                    {/* Chart Section */}
-                    <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                        <h2 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: '#1f2937' }}>Grafik Total Laporan Petugas Perbulan</h2>
-
-                        {/* Simple CSS Bar Chart Visualization */}
-                        <div style={{ display: 'flex', alignItems: 'flex-end', height: '300px', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-                            {Object.keys(stats.monthly).length > 0 ? (
-                                Object.entries(stats.monthly).map(([month, count]) => (
-                                    <div key={month} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                                        <div style={{
-                                            width: '100%',
-                                            maxWidth: '50px',
-                                            height: `${Math.min(count * 20, 250)}px`, // Dynamic height scale
-                                            backgroundColor: '#ef4444',
-                                            borderRadius: '4px 4px 0 0',
-                                            transition: 'height 0.3s ease'
-                                        }}></div>
-                                        <span style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>{month}</span>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{count}</span>
-                                    </div>
-                                ))
-                            ) : (
-                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
-                                    No data available for chart
+                        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6">
+                            <div className="bg-white p-6 rounded-lg shadow-sm flex justify-between items-center border border-orange-light/20">
+                                <div>
+                                    <p className="text-gray-dark text-sm">Total Petugas</p>
+                                    <p className="text-4xl font-bold leading-none mt-2 text-black-soft">{totalPetugas}</p>
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                </>
-            )}
+                                <UserGroupIcon className="w-12 h-12 text-orange-light opacity-80" />
+                            </div>
 
-            {/* USER PROFILE VIEW (Koordinator & Petugas) */}
-            {(user.role === 'koordinator' || user.role === 'petugas') && (
-                <UserProfile user={user} />
-            )}
+                            <div className="bg-white p-6 rounded-lg shadow-sm flex justify-between items-center border border-orange-light/20">
+                                <div>
+                                    <p className="text-gray-dark text-sm">Laporan Masuk Hari Ini</p>
+                                    <p className="text-4xl font-bold leading-none mt-2 text-black-soft">{stats.today}</p>
+                                </div>
+                                <DocumentTextIcon className="w-12 h-12 text-orange-light opacity-80" />
+                            </div>
+
+                            <div className="bg-white p-6 rounded-lg shadow-sm flex justify-between items-center border border-orange-light/20">
+                                <div>
+                                    <p className="text-gray-dark text-sm">Laporan Belum Di Verifikasi</p>
+                                    <p className="text-4xl font-bold leading-none mt-2 text-black-soft">{stats.pending}</p>
+                                </div>
+                                <ClipboardDocumentCheckIcon className="w-12 h-12 text-orange-light opacity-80" />
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-orange-light/20">
+                            <h2 className="text-base font-semibold mb-6 text-black-soft">Grafik Total Laporan Petugas Perbulan</h2>
+                            <div className="flex items-end h-[300px] gap-4 pb-4 border-b border-orange-light/20">
+                                {Object.keys(stats.monthly).length > 0 ? (
+                                    Object.entries(stats.monthly).map(([month, count]) => (
+                                        <div key={month} className="flex flex-col items-center flex-1">
+                                            <div
+                                                className="w-full max-w-[50px] bg-orange-deep rounded-t transition-all duration-300 hover:bg-orange-light relative group"
+                                                style={{ height: `${Math.min(count * 20, 250)}px` }}
+                                            >
+                                                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black-soft text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+                                                    {count}
+                                                </div>
+                                            </div>
+                                            <span className="mt-2 text-sm text-gray-dark">{month}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        No data available for chart
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* USER VIEW (Koordinator & Petugas) */}
+                {(user.role === 'koordinator' || user.role === 'petugas') && (
+                    <UserProfile user={user} variant="wide" />
+                )}
+            </div>
         </div>
     )
-}
-
-const cardStyle = {
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
 }

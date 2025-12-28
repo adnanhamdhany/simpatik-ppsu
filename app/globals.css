@@ -1,2 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-cream: #fffef9;
+  --color-orange-light: #fe925d;
+  --color-orange-deep: #ff6113;
+  --color-gray-dark: #1e1e1e;
+  --color-black-soft: #212121;
+  --color-white-off: #eeeeee;
+}
+
+/* Base styles to apply default colors */
+body {
+  background-color: var(--color-cream);
+  color: var(--color-black-soft);
+}

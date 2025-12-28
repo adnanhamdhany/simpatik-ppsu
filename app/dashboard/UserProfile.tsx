@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-export default function UserProfile({ user }: { user: any }) {
+export default function UserProfile({ user, variant = 'default' }: { user: any, variant?: 'default' | 'wide' }) {
     const [uploading, setUploading] = useState(false)
     const [avatarKey, setAvatarKey] = useState(user.avatar_path || null)
     const [previewUrl, setPreviewUrl] = useState(
@@ -10,6 +10,8 @@ export default function UserProfile({ user }: { user: any }) {
             ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${user.avatar_path}`
             : null
     )
+
+    const isWide = variant === 'wide'
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) {
@@ -44,46 +46,34 @@ export default function UserProfile({ user }: { user: any }) {
     }
 
     return (
-        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', maxWidth: '600px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', textTransform: 'capitalize' }}>
-                Profile {user.role}
-            </h2>
+        <div className={isWide
+            ? "bg-white p-4 rounded-lg shadow-sm w-full mb-6 flex flex-row items-center gap-4 border border-orange-light/20"
+            : "bg-white p-8 rounded-lg shadow-sm max-w-[600px] mx-auto border border-orange-light/20"
+        }>
+            {!isWide && (
+                <h2 className="text-xl font-bold mb-6 border-b border-orange-light/20 pb-4 capitalize text-black-soft">
+                    Profile {user.role}
+                </h2>
+            )}
 
             {/* Avatar Section */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
-                <div style={{
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    backgroundColor: '#e4e4e7',
-                    marginBottom: '1rem',
-                    position: 'relative',
-                    border: '4px solid #f4f4f5'
-                }}>
+            <div className={`flex flex-col items-center ${isWide ? 'min-w-[150px] mb-0' : 'mb-8'}`}>
+                <div className={`${isWide ? 'w-24 h-24' : 'w-[120px] h-[120px]'} rounded-full overflow-hidden bg-orange-light/10 mb-3 relative`}>
                     {previewUrl ? (
                         <img
                             src={previewUrl}
                             alt="Profile"
-                            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                            className="object-cover w-full h-full"
                         />
                     ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a1a1aa', fontSize: '3rem' }}>
+                        <div className={`w-full h-full flex items-center justify-center text-orange-light/50 ${isWide ? 'text-4xl' : 'text-5xl'}`}>
                             👤
                         </div>
                     )}
                 </div>
 
-                <label style={{ cursor: 'pointer', display: 'inline-block' }}>
-                    <span style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#2563eb',
-                        color: 'white',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        opacity: uploading ? 0.7 : 1
-                    }}>
+                <label className="cursor-pointer inline-block">
+                    <span className={`px-3 py-1.5 bg-orange-deep text-white rounded-md text-xs font-medium ${uploading ? 'opacity-70' : 'opacity-100'} hover:bg-orange-light transition`}>
                         {uploading ? 'Mengupload...' : 'Ganti Foto'}
                     </span>
                     <input
@@ -91,31 +81,52 @@ export default function UserProfile({ user }: { user: any }) {
                         accept="image/*"
                         onChange={handleFileChange}
                         disabled={uploading}
-                        style={{ display: 'none' }}
+                        className="hidden"
                     />
                 </label>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '1rem 0', fontWeight: '600', width: '40%', color: '#374151' }}>Nama Lengkap</td>
-                        <td style={{ padding: '1rem 0', color: '#111827' }}>{user.name}</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '1rem 0', fontWeight: '600', color: '#374151' }}>Username</td>
-                        <td style={{ padding: '1rem 0', color: '#111827' }}>{user.username}</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '1rem 0', fontWeight: '600', color: '#374151' }}>Role</td>
-                        <td style={{ padding: '1rem 0', color: '#111827', textTransform: 'capitalize' }}>{user.role}</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '1rem 0', fontWeight: '600', color: '#374151' }}>Tim Petugas</td>
-                        <td style={{ padding: '1rem 0', color: '#111827' }}>{user.role_petugas_team || '-'}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div className={isWide ? 'flex-1 w-auto' : 'flex-1 w-full'}>
+                {isWide && (
+                    <h2 className="text-xl font-bold mb-3 border-b border-orange-light/20 pb-2 capitalize text-black-soft">
+                        Profile {user.role}
+                    </h2>
+                )}
+                <table className="w-full border-collapse">
+                    <tbody>
+                        <tr className="border-b border-orange-light/10">
+                            <td className={`py-1.5 font-semibold text-gray-dark text-sm ${isWide ? 'w-[30%]' : 'w-[40%]'}`}>Nama Lengkap</td>
+                            <td className="py-1.5 text-black-soft text-sm">{user.name}</td>
+                        </tr>
+                        <tr className="border-b border-orange-light/10">
+                            <td className="py-1.5 font-semibold text-gray-dark text-sm">Username</td>
+                            <td className="py-1.5 text-black-soft text-sm">{user.username}</td>
+                        </tr>
+                        <tr className="border-b border-orange-light/10">
+                            <td className="py-1.5 font-semibold text-gray-dark text-sm">Role</td>
+                            <td className="py-1.5 text-black-soft capitalize text-sm">{user.role}</td>
+                        </tr>
+                        {user.role !== 'admin' && (
+                            <>
+                                <tr className="border-b border-orange-light/10">
+                                    <td className="py-1.5 font-semibold text-gray-dark text-sm">Unit Kerja</td>
+                                    <td className="py-1.5 text-black-soft text-sm">{user.role_petugas_team || '-'}</td>
+                                </tr>
+                                <tr className="border-b border-orange-light/10">
+                                    <td className="py-1.5 font-semibold text-gray-dark text-sm">Nomor Tim</td>
+                                    <td className="py-1.5 text-black-soft text-sm">Tim {user.team_number || '-'}</td>
+                                </tr>
+                            </>
+                        )}
+                        {user.role !== 'admin' && (
+                            <tr className="border-b border-orange-light/10">
+                                <td className="py-1.5 font-semibold text-gray-dark text-sm">No. Handphone</td>
+                                <td className="py-1.5 text-black-soft text-sm">{user.phone_number || '-'}</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }

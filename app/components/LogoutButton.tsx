@@ -1,5 +1,7 @@
 'use client'
 
+import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline'
+
 export default function LogoutButton() {
     const handleLogout = async () => {
         try {
@@ -11,8 +13,9 @@ export default function LogoutButton() {
     }
 
     return (
-        <button onClick={handleLogout} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
-            Logout
+        <button onClick={handleLogout} className="w-full px-4 py-3 cursor-pointer text-white-off rounded-md hover:bg-white-off/10 transition text-sm font-medium flex items-center gap-3 text-left">
+            <ArrowLeftOnRectangleIcon className="w-5 h-5" />
+            <span>Logout</span>
         </button>
     )
 }
