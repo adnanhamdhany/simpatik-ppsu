@@ -27,18 +27,11 @@ export default async function LaporanPage() {
     }
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Laporan Kegiatan</h1>
+        <div className="p-8 max-w-6xl mx-auto space-y-8">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-black-soft">Laporan Kegiatan</h1>
                 {user.role === 'koordinator' && (
-                    <a href="/laporan/create" style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#2563eb',
-                        color: 'white',
-                        textDecoration: 'none',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                    }}>
+                    <a href="/laporan/create" className="px-4 py-2 bg-orange-light text-white no-underline rounded-md text-sm hover:bg-orange-deep transition">
                         + Buat Laporan
                     </a>
                 )}

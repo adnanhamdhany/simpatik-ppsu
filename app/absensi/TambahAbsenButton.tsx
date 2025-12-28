@@ -38,18 +38,7 @@ export default function TambahAbsenButton() {
         <>
             <button
                 onClick={() => setShowCamera(true)}
-                style={{
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.5rem',
-                    fontWeight: '600',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                }}
+                className="bg-orange-light text-white px-6 py-3 rounded-lg font-semibold border-none cursor-pointer flex items-center gap-2 hover:bg-orange-deep transition"
             >
                 📸 Tambah Absen
             </button>
