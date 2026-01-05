@@ -1,6 +1,6 @@
-
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { cookies } from 'next/headers'
 
 export async function DELETE(
     request: Request,
@@ -8,6 +8,18 @@ export async function DELETE(
 ) {
     const { id } = await params
 
+    // Security check
+    const cookieStore = await cookies()
+    const sessionUser = cookieStore.get('session_user')
+    if (!sessionUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userRole = JSON.parse(sessionUser.value).role
+    if (userRole !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    // 1. Delete related data first (Manual Cascade)
+    await supabase.from('absensi').delete().eq('user_id', id)
+    await supabase.from('laporan').delete().eq('koordinator_id', id)
+
+    // 2. Delete user
     const { error } = await supabase
         .from('user')
         .delete()
@@ -26,12 +38,22 @@ export async function PUT(
 ) {
     const { id } = await params
     try {
+        // Security check
+        const cookieStore = await cookies()
+        const sessionUser = cookieStore.get('session_user')
+        if (!sessionUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const userRole = JSON.parse(sessionUser.value).role
+        if (userRole !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
         const body = await request.json()
         const { username, password, name, role } = body
 
+        const updateData: any = { username, name, role }
+        if (password) updateData.password = password
+
         const { data, error } = await supabase
             .from('user')
-            .update({ username, password, name, role })
+            .update(updateData)
             .eq('id', id)
             .select()
 

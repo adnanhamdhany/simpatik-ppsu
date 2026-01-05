@@ -1,7 +1,11 @@
-
+import { Metadata } from 'next'
 import { getAllUsers, getExistingTeams } from '@/supabase/services/user'
 import UserListClient from './UserListClient'
 import { cookies } from 'next/headers'
+
+export const metadata: Metadata = {
+    title: 'Data User',
+}
 
 export default async function DataUserPage() {
     const cookieStore = await cookies()
@@ -18,11 +22,9 @@ export default async function DataUserPage() {
     const teamOptions = Array.from(new Set([...requiredTeams, ...dbTeams])).sort()
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>Data User</h1>
+        <div className="p-4 md:p-8 space-y-8">
+            <h1 className="text-3xl md:text-4xl font-black text-black-soft tracking-tight">Data User & Kepegawaian</h1>
             <UserListClient initialUsers={users} teamOptions={teamOptions} currentUserRole={user.role} />
         </div>
     )
 }
-
-

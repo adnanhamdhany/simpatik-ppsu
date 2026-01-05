@@ -11,13 +11,41 @@ const videoConstraints = {
 }
 
 interface CameraCaptureProps {
-    onCapture: (file: File) => void
+    onCapture: (file: File, latitude?: number, longitude?: number, locationName?: string) => void
     onCancel: () => void
 }
 
 export default function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     const webcamRef = useRef<Webcam>(null)
     const [imgSrc, setImgSrc] = useState<string | null>(null)
+    const [location, setLocation] = useState<{ lat: number, lng: number, name?: string } | null>(null)
+
+    // Fetch location as soon as component mounts (camera opens)
+    React.useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude
+                    const lng = position.coords.longitude
+                    setLocation({ lat, lng })
+
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+                        const data = await res.json()
+                        const name = data.address.village || data.address.suburb || data.address.road || data.display_name.split(',')[0]
+                        setLocation({ lat, lng, name })
+                    } catch (err) {
+                        console.error("Reverse geocoding error:", err)
+                    }
+                },
+                (error) => {
+                    console.error("Error getting location:", error)
+                    alert("Gagal mendapatkan lokasi. Pastikan GPS aktif.")
+                },
+                { enableHighAccuracy: true }
+            )
+        }
+    }, [])
 
     const capture = useCallback(() => {
         const imageSrc = webcamRef.current?.getScreenshot()
@@ -38,7 +66,7 @@ export default function CameraCapture({ onCapture, onCancel }: CameraCaptureProp
             .then(res => res.blob())
             .then(blob => {
                 const file = new File([blob], "absensi.jpg", { type: "image/jpeg" })
-                onCapture(file)
+                onCapture(file, location?.lat, location?.lng, location?.name)
             })
     }
 
@@ -47,17 +75,42 @@ export default function CameraCapture({ onCapture, onCancel }: CameraCaptureProp
             position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'black',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
         }}>
-            {imgSrc ? (
-                <img src={imgSrc} alt="Captured" style={{ width: '100%', maxWidth: '500px', borderRadius: '8px' }} />
-            ) : (
-                <Webcam
-                    audio={false}
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
-                    videoConstraints={videoConstraints}
-                    style={{ width: '100%', maxWidth: '500px', borderRadius: '8px' }}
-                />
-            )}
+            <div style={{ position: 'relative', width: '100%', maxWidth: '500px' }}>
+                {imgSrc ? (
+                    <img src={imgSrc} alt="Captured" style={{ width: '100%', borderRadius: '8px' }} />
+                ) : (
+                    <Webcam
+                        audio={false}
+                        ref={webcamRef}
+                        screenshotFormat="image/jpeg"
+                        videoConstraints={videoConstraints}
+                        style={{ width: '100%', borderRadius: '8px' }}
+                    />
+                )}
+
+                {/* Location Overlay */}
+                <div style={{
+                    position: 'absolute', bottom: '10px', left: '10px', right: '10px',
+                    backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', padding: '10px',
+                    borderRadius: '8px', fontSize: '12px', backdropFilter: 'blur(4px)'
+                }}>
+                    {location ? (
+                        location.name ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                📍 <span style={{ fontWeight: 'bold' }}>{location.name}</span>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                ⏳ Mendeteksi nama lokasi...
+                            </div>
+                        )
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            📡 Mencari koordinat GPS...
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
                 {!imgSrc ? (

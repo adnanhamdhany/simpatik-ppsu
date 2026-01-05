@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Define paths
-    const isLoginPage = pathname === '/login'
+    const isAuthPage = pathname.startsWith('/login')
     // Exclude public paths explicitly to avoid loops and broken assets
     const isPublicAsset = pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.includes('.')
     const isApiAuth = pathname.startsWith('/api/auth') // Allow login/logout APIs
@@ -17,14 +17,14 @@ export function middleware(request: NextRequest) {
 
     // Rule 1: Protected routes (Home and others) -> Redirect to Login if no session
     // We consider everything protected except login page, api auth, and static assets.
-    const isProtectedRoute = !isLoginPage && !isPublicAsset && !isApiAuth
+    const isProtectedRoute = !isAuthPage && !isPublicAsset && !isApiAuth
 
     if (isProtectedRoute && !sessionUser) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
     // Rule 2: Login page -> Redirect to Home if session exists
-    if (isLoginPage && sessionUser) {
+    if (isAuthPage && sessionUser) {
         return NextResponse.redirect(new URL('/', request.url))
     }
 
@@ -34,7 +34,7 @@ export function middleware(request: NextRequest) {
 
         try {
             const user = JSON.parse(sessionUser.value)
-            if (user.role !== 'admin') {
+            if (user.role !== 'admin' && user.role !== 'lurah') {
                 return NextResponse.redirect(new URL('/', request.url))
             }
         } catch (e) {
@@ -48,7 +48,7 @@ export function middleware(request: NextRequest) {
 
         try {
             const user = JSON.parse(sessionUser.value)
-            if (user.role !== 'admin' && user.role !== 'koordinator') {
+            if (user.role !== 'admin' && user.role !== 'koordinator' && user.role !== 'lurah') {
                 return NextResponse.redirect(new URL('/', request.url))
             }
         } catch (e) {

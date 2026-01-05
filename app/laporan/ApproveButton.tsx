@@ -35,16 +35,8 @@ export default function ApproveButton({ id, isApproved }: { id: string, isApprov
 
     if (isApproved) {
         return (
-            <span style={{
-                padding: '0.25rem 0.5rem',
-                backgroundColor: '#dcfce7',
-                color: '#166534',
-                borderRadius: '0.25rem',
-                fontSize: '0.75rem',
-                fontWeight: 'bold',
-                display: 'inline-block'
-            }}>
-                Approved
+            <span className="block w-full px-3 py-1.5 bg-zinc-100 text-zinc-400 rounded-lg text-[11px] font-black uppercase tracking-widest text-center border border-zinc-200">
+                Disetujui
             </span>
         )
     }
@@ -53,18 +45,9 @@ export default function ApproveButton({ id, isApproved }: { id: string, isApprov
         <button
             onClick={handleApprove}
             disabled={loading}
-            style={{
-                padding: '0.25rem 0.75rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.25rem',
-                fontSize: '0.75rem',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1
-            }}
+            className="block w-full px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-green-200 transition disabled:opacity-70 disabled:cursor-not-allowed border border-green-200 cursor-pointer"
         >
-            {loading ? 'Processing...' : 'Approve'}
+            {loading ? 'Processing...' : 'Setujui'}
         </button>
     )
 }

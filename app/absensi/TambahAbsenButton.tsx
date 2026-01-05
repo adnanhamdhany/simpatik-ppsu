@@ -8,10 +8,13 @@ export default function TambahAbsenButton() {
     const [showCamera, setShowCamera] = useState(false)
     const router = useRouter()
 
-    const handleCapture = async (file: File) => {
+    const handleCapture = async (file: File, latitude?: number, longitude?: number, locationName?: string) => {
         // Upload
         const formData = new FormData()
         formData.append('file', file)
+        if (latitude) formData.append('latitude', String(latitude))
+        if (longitude) formData.append('longitude', String(longitude))
+        if (locationName) formData.append('location_name', locationName)
 
         try {
             const res = await fetch('/api/absensi', {

@@ -7,6 +7,8 @@
   --color-gray-dark: #1e1e1e;
   --color-black-soft: #212121;
   --color-white-off: #eeeeee;
+  --color-red-custom: #E33E33;
+  --color-green-custom: #95d524;
 }
 
 /* Base styles to apply default colors */

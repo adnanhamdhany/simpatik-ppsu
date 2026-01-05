@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function LoginPage() {
     const [username, setUsername] = useState('')
@@ -34,81 +35,58 @@ export default function LoginPage() {
 
 
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            backgroundColor: '#f4f4f5',
-            fontFamily: 'sans-serif'
-        }}>
-            <div style={{
-                backgroundColor: 'white',
-                padding: '2rem',
-                borderRadius: '0.5rem',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                width: '100%',
-                maxWidth: '400px'
-            }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center', color: '#18181b' }}>PPSU Login</h1>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="flex justify-center items-center min-h-screen bg-cream font-sans p-4">
+            <div className="bg-white p-10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] w-full max-w-[440px] border border-orange-light/10">
+                <div className="flex flex-col items-center mb-8">
+                    <div className="w-16 h-16 bg-orange-deep rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-deep/30">
+                        <span className="text-white text-2xl font-bold italic">P</span>
+                    </div>
+                    <h1 className="text-3xl font-extrabold text-black-soft tracking-tight">PPSU SIMPATIK</h1>
+                    <p className="text-zinc-500 mt-2 text-sm">Silakan masuk ke akun Anda</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                     <div>
-                        <label htmlFor="username" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3f3f46', marginBottom: '0.25rem' }}>Username</label>
+                        <label htmlFor="username" className="block text-sm font-semibold text-gray-dark mb-1.5 ml-1">Nama Pengguna</label>
                         <input
                             type="text"
                             id="username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
-                            style={inputStyle}
-                            placeholder="e.g., adnanhmd"
+                            className="block w-full p-4 rounded-xl border border-zinc-200 text-sm outline-none focus:border-orange-deep focus:ring-2 focus:ring-orange-deep/10 transition-all text-black-soft bg-zinc-50/50"
                         />
                     </div>
                     <div>
-                        <label htmlFor="password" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3f3f46', marginBottom: '0.25rem' }}>Password</label>
+                        <label htmlFor="password" className="block text-sm font-semibold text-gray-dark mb-1.5 ml-1">Kata Sandi</label>
                         <input
                             type="password"
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            style={inputStyle}
-                            placeholder="••••••••"
+                            className="block w-full p-4 rounded-xl border border-zinc-200 text-sm outline-none focus:border-orange-deep focus:ring-2 focus:ring-orange-deep/10 transition-all text-black-soft bg-zinc-50/50"
                         />
                     </div>
-                    <button type="submit" style={buttonStyle}>Sign In</button>
-                    <p style={{ fontSize: '0.75rem', color: '#71717a', textAlign: 'center', marginTop: '1rem' }}>
-                        If you don't have an account, please contact Admin.
-                    </p>
+
+                    <button
+                        type="submit"
+                        className="w-full p-4 rounded-xl border-none bg-orange-deep text-white text-sm font-bold cursor-pointer mt-4 hover:bg-orange-light hover:shadow-xl hover:shadow-orange-deep/20 transition-all transform active:scale-[0.98]"
+                    >
+                        Masuk
+                    </button>
+
+                    <div className="flex flex-col items-center gap-2 mt-6">
+                        <p className="text-xs text-zinc-400 text-center">
+                            Dengan masuk, Anda menyetujui syarat dan ketentuan kami.
+                        </p>
+                        <Link href="/login/forgot-password" title="forgot password" className="text-xs text-orange-deep font-semibold cursor-pointer hover:underline">
+                            Lupa Kata Sandi?
+                        </Link>
+                    </div>
                 </form>
             </div>
         </div>
     )
-}
-
-const inputStyle = {
-    display: 'block',
-    width: '100%',
-    padding: '0.75rem',
-    borderRadius: '0.375rem',
-    border: '1px solid #d4d4d8',
-    fontSize: '0.875rem',
-    outline: 'none',
-    transition: 'border-color 0.15s ease-in-out',
-    color: '#18181b'
-}
-
-const buttonStyle = {
-    width: '100%',
-    padding: '0.75rem',
-    borderRadius: '0.375rem',
-    border: 'none',
-    backgroundColor: '#18181b',
-    color: 'white',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    marginTop: '0.5rem',
-    transition: 'background-color 0.15s ease-in-out'
 }
 

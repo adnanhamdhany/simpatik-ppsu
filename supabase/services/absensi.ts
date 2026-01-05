@@ -1,7 +1,7 @@
 
 import { supabase } from '@/lib/supabase'
 
-export const submitAbsensi = async (file: File, userId: string) => {
+export const submitAbsensi = async (file: File, userId: string, latitude?: number, longitude?: number, location_name?: string) => {
     // 1. Upload Image
     const fileExt = file.name.split('.').pop()
     const fileName = `${userId}-${Date.now()}.${fileExt}`
@@ -19,7 +19,10 @@ export const submitAbsensi = async (file: File, userId: string) => {
         .insert([{
             user_id: userId,
             image_path: fileName,
-            status: 'pending'
+            status: 'pending',
+            latitude,
+            longitude,
+            location_name
         }])
         .select()
 
@@ -37,8 +40,8 @@ export const getAbsensiList = async (userRole: string, userId: string) => {
         `)
         .order('created_at', { ascending: false })
 
-    // If not admin, only show own data
-    if (userRole !== 'admin') {
+    // If not admin or lurah, only show own data
+    if (userRole !== 'admin' && userRole !== 'lurah') {
         query = query.eq('user_id', userId)
     }
 

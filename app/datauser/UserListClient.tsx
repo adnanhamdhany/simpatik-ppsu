@@ -22,32 +22,31 @@ export default function UserListClient({ initialUsers, teamOptions, currentUserR
         team_number: undefined
     })
 
-    // Filters state
-    const [filterRole, setFilterRole] = useState('')
-    const [filterTeam, setFilterTeam] = useState('')
+    // Separate Filters
+    const [pFilterTeam, setPFilterTeam] = useState('')
+    const [pFilterNum, setPFilterNum] = useState<string>('')
+    const [kFilterTeam, setKFilterTeam] = useState('')
 
     const handleDelete = (id: string) => {
         setUsers(users.filter(u => u.id !== id))
     }
 
     const handleAdd = async () => {
-        // Validation: Petugas & Koordinator MUST have a team
         if ((newUser.role === 'petugas' || newUser.role === 'koordinator')) {
             if (!newUser.role_petugas_team) {
                 alert('Harap pilih Tim PPSU!')
                 return
             }
-            if (!newUser.team_number) {
+            if (newUser.role === 'petugas' && newUser.role_petugas_team !== 'penyapuan' && !newUser.team_number) {
                 alert('Harap pilih Nomor Tim!')
                 return
             }
         }
 
-        // Prepare payload: Ensure fields meant to be null are null, not empty strings
         const payload = {
             ...newUser,
             role_petugas_team: (newUser.role === 'petugas' || newUser.role === 'koordinator') ? newUser.role_petugas_team : null,
-            team_number: (newUser.role === 'petugas' || newUser.role === 'koordinator') ? newUser.team_number : null
+            team_number: (newUser.role === 'petugas') ? newUser.team_number : null
         }
 
         const res = await fetch('/api/user', {
@@ -64,14 +63,6 @@ export default function UserListClient({ initialUsers, teamOptions, currentUserR
         }
     }
 
-    // Filter Logic
-    const filteredUsers = users.filter(user => {
-        const matchRole = filterRole ? user.role === filterRole : true
-        const matchTeam = filterTeam ? user.role_petugas_team === filterTeam : true
-        return matchRole && matchTeam
-    })
-
-    // Helper to get number of teams based on selected type
     const getTeamCount = (type: string) => {
         if (type === 'crm') return 3
         if (type === 'wilayah') return 11
@@ -79,146 +70,226 @@ export default function UserListClient({ initialUsers, teamOptions, currentUserR
         return 0
     }
 
-    // Effect to auto-select team number if count is 1
-    const selectedTeamType = newUser.role_petugas_team
-    if (selectedTeamType === 'penyapuan' && newUser.team_number !== 1) {
-        // This causes infinite loop if not careful, better handle in UI or onChange
+    // Role Grouping & Filtering
+    const petugasList = users.filter(u => u.role === 'petugas').filter(u => {
+        const matchTeam = pFilterTeam ? u.role_petugas_team === pFilterTeam : true
+        const matchNum = pFilterNum ? String(u.team_number) === pFilterNum : true
+        return matchTeam && matchNum
+    })
+
+    const koordinatorList = users.filter(u => u.role === 'koordinator').filter(u => {
+        return kFilterTeam ? u.role_petugas_team === kFilterTeam : true
+    })
+
+    const lurahList = users.filter(u => u.role === 'lurah')
+
+    const renderTable = (data: any[], role: string) => {
+        const isStaff = role === 'petugas' || role === 'koordinator'
+
+        return (
+            <div className="mb-12 overflow-hidden shadow-sm rounded-3xl border border-zinc-200 bg-white">
+                {/* Unified Header & Title Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 gap-4 border-b border-zinc-100 bg-zinc-50/30">
+                    <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight flex items-center gap-3">
+                        <span className="w-1.5 h-6 bg-orange-light rounded-full"></span>
+                        {role}
+                        <span className="text-xs font-bold text-zinc-400 normal-case tracking-normal ml-2 bg-white px-2 py-0.5 rounded-full border border-zinc-100 shadow-sm">{data.length} User</span>
+                    </h2>
+
+                    {/* Filters per Role */}
+                    <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                        {role === 'petugas' && (
+                            <>
+                                <select
+                                    value={pFilterTeam}
+                                    onChange={(e) => { setPFilterTeam(e.target.value); setPFilterNum('') }}
+                                    className="p-2.5 border border-zinc-200 rounded-xl text-[11px] font-bold outline-none focus:ring-4 focus:ring-orange-light/10 bg-white shadow-sm transition-all flex-shrink-0"
+                                >
+                                    <option value="">Semua Tim</option>
+                                    {teamOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                                {pFilterTeam && pFilterTeam !== 'penyapuan' && (
+                                    <select
+                                        value={pFilterNum}
+                                        onChange={(e) => setPFilterNum(e.target.value)}
+                                        className="p-2.5 border border-zinc-200 rounded-xl text-[11px] font-bold outline-none focus:ring-4 focus:ring-orange-light/10 bg-white shadow-sm transition-all flex-shrink-0"
+                                    >
+                                        <option value="">Grup</option>
+                                        {Array.from({ length: getTeamCount(pFilterTeam) }, (_, i) => i + 1).map(num => (
+                                            <option key={num} value={num}>Tim {num}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </>
+                        )}
+                        {role === 'koordinator' && (
+                            <select
+                                value={kFilterTeam}
+                                onChange={(e) => setKFilterTeam(e.target.value)}
+                                className="p-2.5 border border-zinc-200 rounded-xl text-[11px] font-bold outline-none focus:ring-4 focus:ring-orange-light/10 bg-white shadow-sm transition-all flex-shrink-0"
+                            >
+                                <option value="">Semua Tim</option>
+                                {teamOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                        )}
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left text-[13px]">
+                        <thead>
+                            <tr className="bg-zinc-50/50 border-b border-zinc-200">
+                                <th className="pl-8 p-4 font-black text-zinc-400 uppercase tracking-widest">Username</th>
+                                <th className="p-4 font-black text-zinc-400 uppercase tracking-widest">Nama Lengkap</th>
+                                {isStaff && <th className="p-4 font-black text-zinc-400 uppercase tracking-widest">Jenis Tim</th>}
+                                {isStaff && <th className="p-4 font-black text-zinc-400 uppercase tracking-widest text-center">No. Tim</th>}
+                                <th className="p-4 font-black text-zinc-400 uppercase tracking-widest">No. HP</th>
+                                {currentUserRole !== 'lurah' && <th className="p-4 font-black text-zinc-400 uppercase tracking-widest text-center">Aksi</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((user) => (
+                                <tr key={user.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/50 transition duration-200">
+                                    <td className="pl-8 p-4 font-black text-zinc-900 tracking-tight">{user.username}</td>
+                                    <td className="p-4">
+                                        <div className="font-bold text-zinc-600">{user.name}</div>
+                                        <div className="text-[10px] text-zinc-300 font-black uppercase mt-0.5">{role}</div>
+                                    </td>
+                                    {isStaff && <td className="p-4"><span className="px-2 py-1 bg-zinc-100 text-zinc-500 rounded-md font-black uppercase text-[10px] tracking-wider">{user.role_petugas_team || '-'}</span></td>}
+                                    {isStaff && <td className="p-4 text-center font-black text-zinc-400">{user.team_number || '-'}</td>}
+                                    <td className="p-4 text-zinc-500 font-mono tracking-tighter">{user.phone_number || '-'}</td>
+                                    {currentUserRole !== 'lurah' && (
+                                        <td className="p-4 text-center">
+                                            <div className="flex justify-center">
+                                                <UserActions user={user} onDelete={handleDelete} currentUserRole={currentUserRole} />
+                                            </div>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))}
+                            {data.length === 0 && (
+                                <tr>
+                                    <td colSpan={isStaff ? 6 : 4} className="p-16 text-center text-zinc-300 italic font-medium uppercase tracking-widest">Data kosong</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        )
     }
 
     return (
         <div>
-            <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                <button onClick={() => setIsAdding(!isAdding)} style={addBtnStyle}>+ Add User</button>
-
-                {/* Admin Filters */}
-                {currentUserRole === 'admin' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <select
-                            value={filterRole}
-                            onChange={(e) => setFilterRole(e.target.value)}
-                            style={{ ...inputStyle, minWidth: '150px' }}
-                        >
-                            <option value="">Semua Role</option>
-                            <option value="petugas">Petugas</option>
-                            <option value="koordinator">Koordinator</option>
-                            <option value="admin">Admin</option>
-                            <option value="lurah">Lurah</option>
-                        </select>
-
-                        <select
-                            value={filterTeam}
-                            onChange={(e) => setFilterTeam(e.target.value)}
-                            style={{ ...inputStyle, minWidth: '150px' }}
-                        >
-                            <option value="">Semua Tim</option>
-                            {teamOptions.map(team => (
-                                <option key={team} value={team}>{team}</option>
-                            ))}
-                        </select>
-                    </div>
+            {/* Add User Section */}
+            <div className="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl border border-zinc-100 shadow-sm">
+                <div>
+                    <h2 className="text-xl font-black text-zinc-900 tracking-tight uppercase">MANAGE USERS</h2>
+                    <p className="text-xs text-zinc-400 font-medium uppercase tracking-[0.2em] mt-1">Kelola data petugas, koordinator, dan admin</p>
+                </div>
+                {currentUserRole !== 'lurah' && (
+                    <button
+                        onClick={() => setIsAdding(!isAdding)}
+                        className={`px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2 shadow-lg shadow-zinc-100 ${isAdding ? 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}
+                    >
+                        {isAdding ? 'Cancel' : (
+                            <>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add User
+                            </>
+                        )}
+                    </button>
                 )}
             </div>
 
             {isAdding && (
-                <div style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <input placeholder="Username" value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value })} style={inputStyle} />
-                    <input placeholder="Password" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} style={inputStyle} />
-                    <input placeholder="Name" value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} style={inputStyle} />
-                    <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} style={inputStyle}>
-                        <option value="petugas">Petugas</option>
-                        <option value="koordinator">Koordinator</option>
-                        <option value="admin">Admin</option>
-                        <option value="lurah">Lurah</option>
-                    </select>
-
-                    {/* Conditional Team Dropdown for Petugas & Koordinator */}
-                    {(newUser.role === 'petugas' || newUser.role === 'koordinator') && (
-                        <>
-                            <select
-                                value={newUser.role_petugas_team || ''}
-                                onChange={e => {
-                                    const val = e.target.value
-                                    setNewUser({
-                                        ...newUser,
-                                        role_petugas_team: val,
-                                        team_number: val === 'penyapuan' ? 1 : undefined // Auto select 1 for penyapuan
-                                    })
-                                }}
-                                style={inputStyle}
-                            >
-                                <option value="">Pilih Tim PPSU...</option>
-                                {/* We use teamOptions passed from props, or hardcode specific ones if user wants exact control */}
-                                {teamOptions.map(team => (
-                                    <option key={team} value={team}>{team}</option>
-                                ))}
+                <div className="mb-10 p-8 bg-zinc-50 rounded-3xl border-2 border-dashed border-zinc-200 animate-in fade-in slide-in-from-top-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Username</label>
+                            <input placeholder="Username" value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value })} className="w-full p-3 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-light/20 font-medium transition" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Password</label>
+                            <input placeholder="Password" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} className="w-full p-3 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-light/20 font-medium transition" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                            <input placeholder="Nama Lengkap" value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} className="w-full p-3 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-light/20 font-medium transition" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Role</label>
+                            <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className="w-full p-3 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-light/20 font-black uppercase transition">
+                                <option value="petugas">Petugas</option>
+                                <option value="koordinator">Koordinator</option>
+                                <option value="admin">Admin</option>
+                                <option value="lurah">Lurah</option>
                             </select>
+                        </div>
+                    </div>
 
-                            {/* Team Number Dropdown */}
-                            {newUser.role_petugas_team && newUser.role_petugas_team !== 'penyapuan' && (
+                    {(newUser.role === 'petugas' || newUser.role === 'koordinator') && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pt-4 border-t border-zinc-200">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Jenis Tim</label>
                                 <select
-                                    value={newUser.team_number || ''}
-                                    onChange={e => setNewUser({ ...newUser, team_number: parseInt(e.target.value) })}
-                                    style={inputStyle}
+                                    value={newUser.role_petugas_team || ''}
+                                    onChange={e => {
+                                        const val = e.target.value
+                                        setNewUser({
+                                            ...newUser,
+                                            role_petugas_team: val,
+                                            team_number: val === 'penyapuan' ? 1 : undefined
+                                        })
+                                    }}
+                                    className="w-full p-3 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-light/20 font-black uppercase transition"
                                 >
-                                    <option value="">Nomor Tim</option>
-                                    {Array.from({ length: getTeamCount(newUser.role_petugas_team) }, (_, i) => i + 1).map(num => (
-                                        <option key={num} value={num}>Tim {num}</option>
-                                    ))}
+                                    <option value="">Pilih Tim PPSU...</option>
+                                    {teamOptions.map(team => <option key={team} value={team}>{team}</option>)}
                                 </select>
+                            </div>
+
+                            {newUser.role_petugas_team && newUser.role_petugas_team !== 'penyapuan' && newUser.role !== 'koordinator' && (
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nomor Tim</label>
+                                    <select
+                                        value={newUser.team_number || ''}
+                                        onChange={e => setNewUser({ ...newUser, team_number: parseInt(e.target.value) })}
+                                        className="w-full p-3 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-light/20 font-black uppercase transition"
+                                    >
+                                        <option value="">Nomor Tim</option>
+                                        {Array.from({ length: getTeamCount(newUser.role_petugas_team) }, (_, i) => i + 1).map(num => (
+                                            <option key={num} value={num}>Tim {num}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             )}
 
-                            {/* Display auto-selected team for Penyapuan */}
                             {newUser.role_petugas_team === 'penyapuan' && (
-                                <span style={{ padding: '0.4rem', color: '#555', fontSize: '0.9rem' }}>Tim 1 (Auto)</span>
+                                <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-zinc-200 self-end h-[50px]">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic">Tim 1 (Auto)</span>
+                                </div>
                             )}
-                        </>
+                        </div>
                     )}
 
-                    <button onClick={handleAdd} style={saveBtnStyle}>Save</button>
+                    <div className="flex justify-end">
+                        <button onClick={handleAdd} className="px-10 py-3 bg-orange-light text-white rounded-2xl font-black uppercase tracking-widest hover:bg-orange-deep transition shadow-lg shadow-orange-light/20">SAVE USER</button>
+                    </div>
                 </div>
             )}
 
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#f4f4f5', borderBottom: '1px solid #d4d4d8' }}>
-                            <th style={thStyle}>ID</th>
-                            <th style={thStyle}>Username</th>
-                            <th style={thStyle}>Name</th>
-                            <th style={thStyle}>Role</th>
-                            <th style={thStyle}>Tim</th>
-                            <th style={thStyle}>No.</th>
-                            <th style={thStyle}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map((user) => (
-                            <tr key={user.id} style={{ borderBottom: '1px solid #e4e4e7' }}>
-                                <td style={tdStyle}>{user.id}</td>
-                                <td style={tdStyle}>{user.username}</td>
-                                <td style={tdStyle}>{user.name}</td>
-                                <td style={tdStyle}>{user.role}</td>
-                                <td style={tdStyle}>{user.role_petugas_team || '-'}</td>
-                                <td style={tdStyle}>{user.team_number || '-'}</td>
-                                <td style={tdStyle}>
-                                    <UserActions user={user} onDelete={handleDelete} />
-                                </td>
-                            </tr>
-                        ))}
-                        {users.length === 0 && (
-                            <tr>
-                                <td colSpan={5} style={{ padding: '1rem', textAlign: 'center' }}>No users found</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            {/* Role-based Tables */}
+            {renderTable(petugasList, 'petugas')}
+            {renderTable(koordinatorList, 'koordinator')}
+            {renderTable(lurahList, 'lurah')}
         </div>
     )
 }
 
 const inputStyle = { padding: '0.4rem', border: '1px solid #ccc', borderRadius: '4px' }
-const addBtnStyle = { padding: '0.5rem 1rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }
-const saveBtnStyle = { padding: '0.4rem 1rem', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }
 const thStyle = { padding: '0.75rem 1rem', fontWeight: '600', color: '#52525b' }
 const tdStyle = { padding: '0.75rem 1rem', color: '#18181b' }

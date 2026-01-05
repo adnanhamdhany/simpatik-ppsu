@@ -16,12 +16,15 @@ export async function POST(request: Request) {
         }
 
         const user = JSON.parse(sessionUser.value)
+        const latitude = formData.get('latitude') ? parseFloat(formData.get('latitude') as string) : undefined
+        const longitude = formData.get('longitude') ? parseFloat(formData.get('longitude') as string) : undefined
+        const location_name = formData.get('location_name') as string | undefined
 
         if (!file) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
         }
 
-        const data = await submitAbsensi(file, user.id)
+        const data = await submitAbsensi(file, user.id, latitude, longitude, location_name)
 
         return NextResponse.json({ success: true, data }, { status: 200 })
 

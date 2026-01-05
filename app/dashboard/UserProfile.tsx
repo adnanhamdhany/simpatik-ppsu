@@ -47,8 +47,8 @@ export default function UserProfile({ user, variant = 'default' }: { user: any, 
 
     return (
         <div className={isWide
-            ? "bg-white p-4 rounded-lg shadow-sm w-full mb-6 flex flex-row items-center gap-4 border border-orange-light/20"
-            : "bg-white p-8 rounded-lg shadow-sm max-w-[600px] mx-auto border border-orange-light/20"
+            ? "bg-white p-4 md:p-6 rounded-2xl shadow-sm w-full mb-6 flex flex-col md:flex-row items-center gap-4 md:gap-8 border border-zinc-100"
+            : "bg-white p-6 md:p-8 rounded-2xl shadow-sm max-w-[600px] mx-auto border border-zinc-100"
         }>
             {!isWide && (
                 <h2 className="text-xl font-bold mb-6 border-b border-orange-light/20 pb-4 capitalize text-black-soft">
@@ -57,7 +57,7 @@ export default function UserProfile({ user, variant = 'default' }: { user: any, 
             )}
 
             {/* Avatar Section */}
-            <div className={`flex flex-col items-center ${isWide ? 'min-w-[150px] mb-0' : 'mb-8'}`}>
+            <div className={`flex flex-col items-center ${isWide ? 'w-full md:w-auto md:min-w-[150px] mb-4 md:mb-0' : 'mb-8'}`}>
                 <div className={`${isWide ? 'w-24 h-24' : 'w-[120px] h-[120px]'} rounded-full overflow-hidden bg-orange-light/10 mb-3 relative`}>
                     {previewUrl ? (
                         <img
@@ -106,7 +106,7 @@ export default function UserProfile({ user, variant = 'default' }: { user: any, 
                             <td className="py-1.5 font-semibold text-gray-dark text-sm">Role</td>
                             <td className="py-1.5 text-black-soft capitalize text-sm">{user.role}</td>
                         </tr>
-                        {user.role !== 'admin' && (
+                        {user.role !== 'admin' && user.role !== 'lurah' && (
                             <>
                                 <tr className="border-b border-orange-light/10">
                                     <td className="py-1.5 font-semibold text-gray-dark text-sm">Unit Kerja</td>
@@ -118,7 +118,7 @@ export default function UserProfile({ user, variant = 'default' }: { user: any, 
                                 </tr>
                             </>
                         )}
-                        {user.role !== 'admin' && (
+                        {user.role !== 'admin' && user.role !== 'lurah' && (
                             <tr className="border-b border-orange-light/10">
                                 <td className="py-1.5 font-semibold text-gray-dark text-sm">No. Handphone</td>
                                 <td className="py-1.5 text-black-soft text-sm">{user.phone_number || '-'}</td>
