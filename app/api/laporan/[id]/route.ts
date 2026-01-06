@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getLaporanById, deleteLaporan } from '@/supabase/services/laporan'
 import { cookies } from 'next/headers'
 
+type Params = {
+  params: Promise<{
+    id: string
+  }>
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Params
 ) {
   try {
     const cookieStore = cookies()
@@ -14,7 +20,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const id = params.id
+    const { id } = await params
     const laporan = await getLaporanById(id)
 
     if (!laporan) {
@@ -33,7 +39,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Params
 ) {
   try {
     const cookieStore = cookies()
@@ -48,7 +54,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const id = params.id
+    const { id } = await params
     await deleteLaporan(id)
 
     return NextResponse.json({ message: 'Laporan deleted successfully' })
